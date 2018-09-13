@@ -37,6 +37,7 @@ type Config struct {
 	Debug bool `yaml:"debug"`
 	DB    DB   `yaml:"db"`
 	Host  Host `yaml:"host"`
+	Auth  Auth `yaml:"auth"`
 }
 
 // DB struct
@@ -52,4 +53,14 @@ type DB struct {
 type Host struct {
 	IP   string `yaml:"ip"`
 	Port string `yaml:"port"`
+}
+
+// Auth struct
+type Auth struct {
+	// Auth server
+	IP   string `yaml:"ip"`
+	Port string `yaml:"port"`
+	// Facebook
+	FBClient string `yaml:"fbclient"`
+	FBSecret string `yaml:"fbsecret"`
 }
