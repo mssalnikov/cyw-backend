@@ -8,6 +8,9 @@ db:
 host:
   ip:           "localhost"
   port:         "3000"
+authhost:
+  ip:           "localhost"
+  port:         "3001"
 auth:
   ip:           "localhost"
   port:         "3001"

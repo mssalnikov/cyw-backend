@@ -3,27 +3,30 @@ package users
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
-	"github.com/gorilla/mux"
+
 	"../../utils"
 	"github.com/dghubble/gologin/facebook"
 	"github.com/dghubble/sessions"
-	"log"
+	"github.com/gorilla/mux"
+	"github.com/rs/xid"
 )
 
 func getDefaultHeader(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 }
 
+var Guid = xid.New()
+
 const (
-	sessionName    = "example-facebook-app"
-	sessionSecret  = "example cookie signing secret"
+	sessionName    = "facebook-session"
 	sessionUserKey = "facebookID"
 )
 
 // sessionStore encodes and decodes session data stored in signed cookies
-var sessionStore = sessions.NewCookieStore([]byte(sessionSecret), nil)
+var sessionStore = sessions.NewCookieStore([]byte(Guid.String()), nil)
 
 //// GetUsers return all users
 //func (uh *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
@@ -68,6 +71,7 @@ func (uh *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, result)
 }
+
 //
 //// UpdateUser update user
 //func (uh *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -220,7 +224,6 @@ func (uh *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-
 // issueSession issues a cookie session after successful Facebook login
 func (uh *UserHandler) IssueSession(redirectUrl string) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
@@ -235,8 +238,8 @@ func (uh *UserHandler) IssueSession(redirectUrl string) http.Handler {
 		session := sessionStore.New(sessionName)
 		session.Values[sessionUserKey] = facebookUser.ID
 		session.Save(w)
-		url := redirectUrl + "/profile"
-		http.Redirect(w, req, url, http.StatusFound)
+		//url := redirectUrl + "/profile"
+		//http.Redirect(w, req, url, http.StatusFound)
 	}
 	return http.HandlerFunc(fn)
 }

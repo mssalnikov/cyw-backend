@@ -37,6 +37,7 @@ type Config struct {
 	Debug bool `yaml:"debug"`
 	DB    DB   `yaml:"db"`
 	Host  Host `yaml:"host"`
+	AuthHost  Host `yaml:"authhost"`
 	Auth  Auth `yaml:"auth"`
 }
 
@@ -51,6 +52,12 @@ type DB struct {
 
 // Host struct
 type Host struct {
+	IP   string `yaml:"ip"`
+	Port string `yaml:"port"`
+}
+
+// Host struct
+type AuthHost struct {
 	IP   string `yaml:"ip"`
 	Port string `yaml:"port"`
 }

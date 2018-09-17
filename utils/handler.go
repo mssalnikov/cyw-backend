@@ -45,7 +45,7 @@ func AuthenticationMiddleware(next http.Handler) http.Handler {
 		if r.URL.String() != "/" {
 			if user, found := TokenUser[token]; found {
 				// We found the token in our map
-				log.Printf("Authenticated user %s\n", user)
+				log.Printf("Authenticated user %d\n", user)
 				// Pass down the request to the next middleware (or final handler)
 				next.ServeHTTP(w, r)
 			} else {

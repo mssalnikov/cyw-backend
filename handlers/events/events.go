@@ -1,17 +1,23 @@
-package welcome
+package events
 
 import (
+	"sync"
+
+	"github.com/jmoiron/sqlx"
+
 	"../../models"
 	"../../utils"
 )
 
-// WelcomeHandler struct
-type WelcomeHandler struct {
+// EventHandler struct
+type EventHandler struct {
+	db  *sqlx.DB
+	lck sync.RWMutex
 }
 
 // NewUserHandler return new UserHandler object
-func NewWelcomeHandler() *WelcomeHandler{
-	return &WelcomeHandler{}
+func NewEventHandler(db *sqlx.DB) *EventHandler {
+	return &EventHandler{db: db}
 }
 
 // errorMessage return error message as json string

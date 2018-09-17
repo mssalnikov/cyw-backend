@@ -27,10 +27,10 @@ func (rt *ResultTransformer) Get() interface{} {
 // ToJSON return json
 func (rt *ResultTransformer) ToJSON() (string, error) {
 
-	json, err := json.Marshal(rt.value)
+	j, err := json.Marshal(rt.value)
 	if err != nil {
 		return "", err
 	}
 
-	return string(json), nil
+	return string(j), nil
 }

@@ -6,18 +6,19 @@ import (
 	"net/http"
 
 	"./conf"
-	_ "github.com/lib/pq"
 	_ "./models"
+	_ "github.com/lib/pq"
 
 	"./handlers/users"
 	"./utils"
 	"github.com/jmoiron/sqlx"
 
-	facebookOAuth2 "golang.org/x/oauth2/facebook"
-	"github.com/gorilla/mux"
-	"github.com/dghubble/gologin/facebook"
-	"golang.org/x/oauth2"
 	"github.com/dghubble/gologin"
+	"github.com/dghubble/gologin/facebook"
+	"github.com/gorilla/mux"
+	"golang.org/x/oauth2"
+	facebookOAuth2 "golang.org/x/oauth2/facebook"
+	"github.com/go-redis/redis"
 )
 
 // checkError check errors
@@ -35,12 +36,21 @@ type authenticationMiddleware struct {
 	tokenUsers map[string]string
 }
 
-
 func main() {
 
 	// load config
 	config, err := conf.NewConfig("config.yaml").Load()
 	checkError(err)
+
+	// redis connection client
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	pong, err := redisClient.Ping().Result()
+	fmt.Println(pong, err)
 
 	// mysql connection string
 	sqlBind := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable",
@@ -79,7 +89,7 @@ func main() {
 	oauth2Config := &oauth2.Config{
 		ClientID:     config.Auth.FBClient,
 		ClientSecret: config.Auth.FBSecret,
-		RedirectURL:  "http://localhost:3001/facebook/callback",
+		RedirectURL:  "http://" + config.AuthHost.IP + ":" + config.AuthHost.Port + "/facebook/callback",
 		Endpoint:     facebookOAuth2.Endpoint,
 		Scopes:       []string{"email"},
 	}
@@ -98,40 +108,6 @@ func main() {
 	stateConfig := gologin.DebugOnlyCookieConfig
 	mx.Handle("/facebook/login", facebook.StateHandler(stateConfig, facebook.LoginHandler(oauth2Config, nil)))
 	mx.Handle("/facebook/callback", facebook.StateHandler(stateConfig, facebook.CallbackHandler(oauth2Config, uh.IssueSession(hostFacebookBind), nil)))
-
-
-	//mux.HandleFunc("/user/login", users.Login).Methods("GET")
-	//mux.HandleFunc("/user/logout", userHandler.Logout).Methods("GET")
-
-	//mux.HandleFunc("/logout", logoutHandler)
-	////welcome handler
-	//mx.HandleFunc("/", welcomeHandler.WelcomePage).Methods("GET")
-	//// user handler
-	//mx.HandleFunc("/profile", utils.RequireLogin(userHandler.GetUser)).Methods("GET")
-	//mx.HandleFunc("/users", userHandler.GetUsers).Methods("GET")
-	//mx.HandleFunc("/users/{id}", userHandler.GetUser).Methods("GET")
-	//mx.HandleFunc("/users", userHandler.UpdateUser).Methods("PUT")
-	//mx.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods("DELETE")
-	//// ToDo: fix method to post
-	//mx.HandleFunc("/user/login", userHandler.Login).Methods("GET")
-	//mx.HandleFunc("/user/logout", userHandler.Logout).Methods("GET")
-
-	//// // read credentials from environment variables if available
-	//fbConfig := &utils.Config{
-	//	FacebookClientID:     config.Auth.FBClient,
-	//	FacebookClientSecret: config.Auth.FBSecret,
-	//}
-
-	//log.Printf("Starting Server listening on %s\n", hostBind)
-	//err = http.ListenAndServe(hostBind, utils.New(fbConfig))
-	//checkError(err)
-	//
-	// static
-	//mx.PathPrefix("/").Handler(http.FileServer(http.Dir("public")))
-
-	// negroni
-	//ng := negroni.New()
-	//ng.UseHandler(mx)
 
 	// start server
 	log.Println("Listening on", hostBind)

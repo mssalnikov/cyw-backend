@@ -1,0 +1,14 @@
+version: '3'
+services:
+  postgres:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword
+    volumes:
+      - $HOME/data/mysql:/var/lib/postgresql
+  redis:
+    image: library/redis
+    ports:
+      - "6379:6379"

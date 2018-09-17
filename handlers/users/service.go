@@ -47,33 +47,6 @@ func (us *UserHandler) getUser(id int64) (*utils.ResultTransformer, error) {
 	return result, nil
 }
 
-// updateUser update user and get rows affected in db
-func (us *UserHandler) updateUser(user User) error {
-
-	// concurrency safe
-	us.lck.Lock()
-	defer us.lck.Unlock()
-
-	result, err := us.db.NamedExec("update tbl_users set "+
-		"first_name=:first_name, last_name=:last_name, middle_name=:middle_name, "+
-		"dob=:dob, address=:address, phone=:phone, login=:login, password=:password "+
-		"where id=:id", user)
-	if err != nil {
-		return err
-	}
-
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if rows <= 0 {
-		return errors.New("0 Rows Affected")
-	}
-
-	return nil
-}
-
 // deleteUserByID delete user by id and get rows affected in db
 func (us *UserHandler) deleteUserByID(id int64) error {
 
@@ -81,7 +54,7 @@ func (us *UserHandler) deleteUserByID(id int64) error {
 	us.lck.Lock()
 	defer us.lck.Unlock()
 
-	result, err := us.db.NamedExec("delete from tbl_users where id = :id", map[string]interface{}{"id": id})
+	result, err := us.db.NamedExec("delete from users where id = :id", map[string]interface{}{"id": id})
 	if err != nil {
 		return err
 	}
@@ -105,7 +78,7 @@ func (us *UserHandler) deleteUser(user User) error {
 	us.lck.Lock()
 	defer us.lck.Unlock()
 
-	result, err := us.db.NamedExec("delete from tbl_users where id = :id", user)
+	result, err := us.db.NamedExec("delete from users where id = :id", user)
 	if err != nil {
 		return err
 	}
@@ -129,9 +102,7 @@ func (us *UserHandler) insertUser(user User) (int64, error) {
 	us.lck.Lock()
 	defer us.lck.Unlock()
 
-	result, err := us.db.NamedExec("insert into tbl_users ("+
-		"first_name, last_name, middle_name, dob, address, phone, login, password) values ("+
-		":first_name, :last_name, :middle_name, :dob, :address, :phone, :login, :password)", user)
+	result, err := us.db.NamedExec("insert into users (fb_uid, username, email) values (:fb_uid, :username, :email)", user)
 	if err != nil {
 		return 0, err
 	}
