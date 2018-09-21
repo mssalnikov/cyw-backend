@@ -1,13 +1,15 @@
 version: '3'
 services:
   postgres:
-    image: postgres
+    image: kartoza/postgis:9.6-2.4
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_USER: developer
+      POSTGRES_DBNAME: cywdb
+      POSTGRES_PASS: somepass
     volumes:
-      - $HOME/data/mysql:/var/lib/postgresql
+      - $HOME/data/postgres:/var/lib/postgresql/data
   redis:
     image: library/redis
     ports:

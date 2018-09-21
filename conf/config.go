@@ -39,6 +39,7 @@ type Config struct {
 	Host  Host `yaml:"host"`
 	AuthHost  Host `yaml:"authhost"`
 	Auth  Auth `yaml:"auth"`
+	Navi  Navi `yaml:"navi"`
 }
 
 // DB struct
@@ -70,4 +71,9 @@ type Auth struct {
 	// Facebook
 	FBClient string `yaml:"fbclient"`
 	FBSecret string `yaml:"fbsecret"`
+}
+
+type Navi struct {
+	AuthToken string `yaml:"authtoken"`
+	ApiUri    string `yaml:"apiuri"`
 }

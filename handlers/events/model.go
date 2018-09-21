@@ -9,6 +9,7 @@ import (
 type Event struct {
 	Id        int64     `db:"id" json:"id"`
 	UserId    int64     `db:"user_id" json:"user_id"`
+	Name      string     `db:"name" json:"name"`
 	Description    string     `db:"description" json:"description"`
 	StartAt     time.Time    `db:"start_at" json:"start_at"`
 	FinishAt time.Time `db:"finish_at" json:"finish_at"`

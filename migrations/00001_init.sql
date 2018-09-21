@@ -1,23 +1,24 @@
 -- +goose Up
-create database CYW ENCODING 'UTF-8' OWNER postgres;
-grant all on database CYW to postgres;
-
 CREATE TABLE users (
     id int NOT NULL PRIMARY KEY,
     fb_uid text,
-    name text,
-    last_name text
+    username text,
+    email text
 );
 
 CREATE TABLE events (
     id int NOT NULL PRIMARY KEY,
-    type text,
-    user_id int references users(id)
+    user_id int REFERENCES users(id) ON DELETE CASCADE,
+    name text,
+    description text,
+    start_at timestamp without time zone,
+    finish_at timestamp without time zone,
+    is_private bool
 );
 
 CREATE TABLE points (
     id int NOT NULL PRIMARY KEY,
-    event_id int references events(id),
+    event_id int references events(id) ON DELETE CASCADE,
     point geography(POINT),
     description text,
     have_question boolean,
@@ -26,9 +27,6 @@ CREATE TABLE points (
     is_chainded boolean,
     next_point int
 );
--- INSERT INTO users VALUES
--- (0, 'root', '', ''),
--- (1, 'vojtechvitek', 'Vojtech', 'Vitek');
 
 -- +goose Down
 DROP TABLE points;

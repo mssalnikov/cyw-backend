@@ -16,3 +16,7 @@ auth:
   port:         "3001"
   fbclient:     "297124087550852"
   fbsecret:     "02d79e1bb5d9753be5e6b815d8dfd45e"
+navi:
+  authtoken:    "300442c4-ef5f-4618-a0c3-42075dba2396"
+  apiuri:       "https://staging-api.naviaddress.com/api/v1.5/"
+
