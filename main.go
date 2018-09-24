@@ -9,16 +9,10 @@ import (
 	_ "./models"
 	_ "github.com/lib/pq"
 
-	"./handlers/users"
 	"./utils"
-	"github.com/jmoiron/sqlx"
-
-	"github.com/dghubble/gologin"
-	"github.com/dghubble/gologin/facebook"
 	"github.com/gorilla/mux"
-	"golang.org/x/oauth2"
-	facebookOAuth2 "golang.org/x/oauth2/facebook"
 	"github.com/go-redis/redis"
+	"database/sql"
 )
 
 // checkError check errors
@@ -64,15 +58,17 @@ func main() {
 		config.Host.IP,
 		config.Host.Port,
 	)
-	hostFacebookBind := fmt.Sprintf("%s:%s",
-		config.Auth.IP,
-		config.Auth.Port,
-	)
+	//hostFacebookBind := fmt.Sprintf("%s:%s",
+	//	config.Auth.IP,
+	//	config.Auth.Port,
+	//)
 
-	db, err := sqlx.Connect("postgres", sqlBind)
-	checkError(err)
-	db.SetMaxIdleConns(100)
-	defer db.Close()
+	utils.DBCon, err = sql.Open("postgres", sqlBind)
+
+	//db, err := sqlx.Connect("postgres", sqlBind)
+	//checkError(err)
+	//db.SetMaxIdleConns(100)
+	//defer db.Close()
 
 	// 	// handlers
 	//userHandler := users.NewUserHandler(db)
@@ -84,15 +80,15 @@ func main() {
 	//mux.Handle("/profile", utils.RequireLogin(http.HandlerFunc(utils.ProfileHandler)))
 	//
 
-	uh := users.NewUserHandler(db)
+	//uh := users.NewUserHandler(db)
 
-	oauth2Config := &oauth2.Config{
-		ClientID:     config.Auth.FBClient,
-		ClientSecret: config.Auth.FBSecret,
-		RedirectURL:  "http://" + config.AuthHost.IP + ":" + config.AuthHost.Port + "/facebook/callback",
-		Endpoint:     facebookOAuth2.Endpoint,
-		Scopes:       []string{"email"},
-	}
+	//oauth2Config := &oauth2.Config{
+	//	ClientID:     config.Auth.FBClient,
+	//	ClientSecret: config.Auth.FBSecret,
+	//	RedirectURL:  "http://" + config.AuthHost.IP + ":" + config.AuthHost.Port + "/facebook/callback",
+	//	Endpoint:     facebookOAuth2.Endpoint,
+	//	Scopes:       []string{"email"},
+	//}
 	// state param cookies require HTTPS by default; disable for localhost development
 
 	r := mux.NewRouter()
@@ -104,15 +100,15 @@ func main() {
 
 	r.Use(utils.AuthenticationMiddleware)
 
-	mx := http.NewServeMux()
-	stateConfig := gologin.DebugOnlyCookieConfig
-	mx.Handle("/facebook/login", facebook.StateHandler(stateConfig, facebook.LoginHandler(oauth2Config, nil)))
-	mx.Handle("/facebook/callback", facebook.StateHandler(stateConfig, facebook.CallbackHandler(oauth2Config, uh.IssueSession(hostFacebookBind), nil)))
+	//mx := http.NewServeMux()
+	//stateConfig := gologin.DebugOnlyCookieConfig
+	//mx.Handle("/facebook/login", facebook.StateHandler(stateConfig, facebook.LoginHandler(oauth2Config, nil)))
+	//mx.Handle("/facebook/callback", facebook.StateHandler(stateConfig, facebook.CallbackHandler(oauth2Config, uh.IssueSession(hostFacebookBind), nil)))
 
 	// start server
 	log.Println("Listening on", hostBind)
 	go http.ListenAndServe(hostBind, r)
 	//checkError(err)
-	http.ListenAndServe(hostFacebookBind, mx)
+	//http.ListenAndServe(hostFacebookBind, mx)
 	//checkError(err)
 }

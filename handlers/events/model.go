@@ -11,8 +11,9 @@ type Event struct {
 	UserId    int64     `db:"user_id" json:"user_id"`
 	Name      string     `db:"name" json:"name"`
 	Description    string     `db:"description" json:"description"`
-	StartAt     time.Time    `db:"start_at" json:"start_at"`
-	FinishAt time.Time `db:"finish_at" json:"finish_at"`
+	Naviaddress    string     `db:"naviaddress" json:"naviaddress"`
+	StartAt     time.Time    `db:"start" json:"start_at"`
+	FinishAt time.Time `db:"finish" json:"finish_at"`
 	IsPrivate bool `db:"is_private" json:"is_private"`
 }
 
@@ -25,4 +26,11 @@ type PointOfEvent struct {
 	Answer string `db:"answer" json:"answer"`
 	IsChained bool `db:"is_chained" json:"is_chained"`
 	PrevPointId int64 `db:"prev_point_id" json:"prev_point_id"`
+}
+
+type UserPoint struct {
+	Id        int64     `db:"id" json:"id"`
+	UserId     int64    `db:"user_id" json:"user_id"`
+	PointId        int64     `db:"point_id" json:"point_id"`
+	IsSolved bool `db:"is_solved" json:"is_solved"`
 }

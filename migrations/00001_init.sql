@@ -11,8 +11,8 @@ CREATE TABLE events (
     user_id int REFERENCES users(id) ON DELETE CASCADE,
     name text,
     description text,
-    start_at timestamp without time zone,
-    finish_at timestamp without time zone,
+    start timestamp without time zone,
+    finish timestamp without time zone,
     is_private bool
 );
 
@@ -21,6 +21,7 @@ CREATE TABLE points (
     event_id int references events(id) ON DELETE CASCADE,
     point geography(POINT),
     description text,
+    naviaddress text,
     have_question boolean,
     question text,
     answer text,
@@ -28,7 +29,15 @@ CREATE TABLE points (
     next_point int
 );
 
+CREATE TABLE userpoint (
+    id int NOT NULL PRIMARY KEY,
+    user_id int references users(id) ON DELETE CASCADE,
+    point_id int references points(id) ON DELETE CASCADE,
+    is_solved boolean
+);
+
 -- +goose Down
+DROP TABLE userpoint;
 DROP TABLE points;
 DROP TABLE events;
 DROP TABLE users;
