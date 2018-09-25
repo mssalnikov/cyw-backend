@@ -3,12 +3,47 @@ package users
 import (
 	"errors"
 
+	"fmt"
+	"net/http"
+	"io/ioutil"
+	"encoding/json"
+	"log"
+	u "../../utils"
+	"database/sql"
+	"github.com/satori/go.uuid"
+	//"github.com/gkiryaziev/go-gorilla-sqlx/utils"
+	//"github.com/gkiryaziev/go-gorilla-sqlx/models"
 	"github.com/gkiryaziev/go-gorilla-sqlx/models"
 	"github.com/gkiryaziev/go-gorilla-sqlx/utils"
 )
 
+
+type errorString struct {
+	s string
+}
+
+func (e *errorString) Error() string {
+	return e.s
+}
+
+type FBError struct {
+	Message string `json:"message"`
+	Type string `json:"type"`
+	OAuthException string `json:"OAuthException"`
+	Code int `json:"code"`
+	Fbtrace_id string `json:"fbtrace_id"`
+}
+
+type AccessResponse struct {
+	Name string `json:"name"`
+	Id string  `json:"id"`
+	Email string `json:"email"`
+	Error FBError `json:"error,omitempty"`
+}
+
+
 // getUsers return all users from db
-func (us *UserHandler) getUsers() *utils.ResultTransformer {
+func (us *UserHandler) getUsers() *u.ResultTransformer {
 
 	// concurrency safe
 	us.lck.RLock()
@@ -22,7 +57,7 @@ func (us *UserHandler) getUsers() *utils.ResultTransformer {
 	}
 
 	header := models.Header{Status: "ok", Count: len(users), Data: users}
-	result := utils.NewResultTransformer(header)
+	result := u.NewResultTransformer(header)
 
 	return result
 }
@@ -113,4 +148,64 @@ func (us *UserHandler) insertUser(user User) (int64, error) {
 	}
 
 	return id, nil
+}
+
+func (us *UserHandler) auth(fbAccessToken string) (string, error) {
+	log.Println(fbAccessToken)
+	url := fmt.Sprintf("https://graph.facebook.com/me?fields=id,name,email&access_token=%s", fbAccessToken)
+	response, err := http.Get(url)
+
+	if err != nil {
+		fmt.Printf("%s", err)
+		return "", err
+	}
+	contents, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		fmt.Printf("%s", err)
+		return "", err
+	}
+
+	var resp AccessResponse
+	err = json.Unmarshal(contents, &resp)
+	log.Println(resp)
+	log.Println(resp.Id)
+	if err != nil {
+		log.Println("err")
+		panic(err)
+	}
+	if resp.Error.Message != "" {
+		log.Println("err")
+	}
+
+	var user User
+
+	row := u.DBCon.QueryRow(`SELECT * FROM users WHERE fb_uid = $1 ORDER BY id`, resp.Id)
+	err = row.Scan(&user.Id, &user.FBUid, &user.UserName, &user.Email, &user.DateAdded)
+	log.Println(err)
+	switch err {
+	case sql.ErrNoRows:
+		id := 0
+		sqlStatement := `INSERT INTO users (fb_uid, username, email) VALUES ($1, $2, $3) RETURNING id`
+		err = u.DBCon.QueryRow(sqlStatement, resp.Id, resp.Name, resp.Email).Scan(&id)
+		if err != nil {
+			log.Println(err)
+			return "", err
+		}
+		log.Println("New record ID is:", id)
+		newToken := uuid.Must(uuid.NewV4())
+		//fmt.Printf("UUIDv4: %s\n", u1)
+		key := fmt.Sprintf("TOKEN:%s", newToken)
+		u.RedisCon.Set(key, id, 0).Err()
+		return newToken.String(), nil
+	case nil:
+		log.Println(user)
+		newToken := uuid.Must(uuid.NewV4())
+		//fmt.Printf("UUIDv4: %s\n", u1)
+		key := fmt.Sprintf("TOKEN:%s", newToken)
+		u.RedisCon.Set(key, user.Id, 0).Err()
+		return newToken.String(), nil
+	default:
+		log.Println("Smth went wrong")
+		return "", &errorString{"Smth went wrong"}
+	}
 }

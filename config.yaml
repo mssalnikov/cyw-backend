@@ -1,10 +1,10 @@
 debug:           false
 db:
-  username:     "postgres"
-  userpassword: "mysecretpassword"
+  username:     "developer"
+  userpassword: "somepass"
   host:         "localhost"
   port:         "5432"
-  database:     "hackathondb"
+  database:     "cywdb"
 host:
   ip:           "localhost"
   port:         "3000"

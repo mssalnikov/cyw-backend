@@ -37,6 +37,8 @@ func makeEvent(name string, description string) error{
 	return nil
 }
 
-func main() {
-	makeEvent("ololo", "mamka tvoya")
-}
+
+//
+//func main() {
+//	makeEvent("ololo", "mamka tvoya")
+//}

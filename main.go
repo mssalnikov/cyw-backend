@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/go-redis/redis"
 	"database/sql"
+	"./handlers/users"
 )
 
 // checkError check errors
@@ -35,18 +36,6 @@ func main() {
 	// load config
 	config, err := conf.NewConfig("config.yaml").Load()
 	checkError(err)
-
-	// redis connection client
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
-
-	pong, err := redisClient.Ping().Result()
-	fmt.Println(pong, err)
-
-	// mysql connection string
 	sqlBind := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable",
 		config.DB.UserName,
 		config.DB.UserPassword,
@@ -58,12 +47,30 @@ func main() {
 		config.Host.IP,
 		config.Host.Port,
 	)
-	//hostFacebookBind := fmt.Sprintf("%s:%s",
-	//	config.Auth.IP,
-	//	config.Auth.Port,
-	//)
 
 	utils.DBCon, err = sql.Open("postgres", sqlBind)
+	utils.RedisCon = redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+
+	// redis connection client
+	//redisClient := redis.NewClient(&redis.Options{
+	//	Addr:     "localhost:6379",
+	//	Password: "", // no password set
+	//	DB:       0,  // use default DB
+	//})
+	//
+	//pong, err := redisClient.Ping().Result()
+	//fmt.Println(pong, err)
+
+	// mysql connection string
+	hostFacebookBind := fmt.Sprintf("%s:%s",
+		config.Auth.IP,
+		config.Auth.Port,
+	)
 
 	//db, err := sqlx.Connect("postgres", sqlBind)
 	//checkError(err)
@@ -80,7 +87,7 @@ func main() {
 	//mux.Handle("/profile", utils.RequireLogin(http.HandlerFunc(utils.ProfileHandler)))
 	//
 
-	//uh := users.NewUserHandler(db)
+	uh := users.NewUserHandler()
 
 	//oauth2Config := &oauth2.Config{
 	//	ClientID:     config.Auth.FBClient,
@@ -92,23 +99,23 @@ func main() {
 	// state param cookies require HTTPS by default; disable for localhost development
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", YourHandler).Methods("GET")
+	r.HandleFunc("/auth", uh.Auth).Methods("POST")
 	r.HandleFunc("/profile", YourHandler).Methods("GET")
 
 	//r.Handle("/facebook/login", facebook.StateHandler(stateConfig, facebook.LoginHandler(oauth2Config, nil)))
 	//r.Handle("/facebook/callback", facebook.StateHandler(stateConfig, facebook.CallbackHandler(oauth2Config, uh.IssueSession(), nil)))
 
-	r.Use(utils.AuthenticationMiddleware)
+	//r.Use(utils.AuthenticationMiddleware)
 
-	//mx := http.NewServeMux()
+	mx := http.NewServeMux()
 	//stateConfig := gologin.DebugOnlyCookieConfig
-	//mx.Handle("/facebook/login", facebook.StateHandler(stateConfig, facebook.LoginHandler(oauth2Config, nil)))
+	//mx.Handle("/auth", facebook.StateHandler(stateConfig, facebook.LoginHandler(oauth2Config, nil)))
 	//mx.Handle("/facebook/callback", facebook.StateHandler(stateConfig, facebook.CallbackHandler(oauth2Config, uh.IssueSession(hostFacebookBind), nil)))
 
 	// start server
 	log.Println("Listening on", hostBind)
-	go http.ListenAndServe(hostBind, r)
+	http.ListenAndServe(hostBind, r)
 	//checkError(err)
-	//http.ListenAndServe(hostFacebookBind, mx)
+	http.ListenAndServe(hostFacebookBind, mx)
 	//checkError(err)
 }

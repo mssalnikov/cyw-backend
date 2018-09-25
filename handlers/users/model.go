@@ -14,7 +14,8 @@ type User struct {
 }
 
 // Header struct
-type LoginHeader struct {
+type FbAuth struct {
+	FbAccessToken string `json:"fbAccessToken"`
 }
 
 type LoginRequest struct {

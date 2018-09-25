@@ -16,8 +16,8 @@ type UserHandler struct {
 }
 
 // NewUserHandler return new UserHandler object
-func NewUserHandler(db *sqlx.DB) *UserHandler {
-	return &UserHandler{db: db}
+func NewUserHandler() *UserHandler {
+	return &UserHandler{}
 }
 
 // errorMessage return error message as json string

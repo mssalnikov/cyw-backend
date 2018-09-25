@@ -1,13 +1,13 @@
 -- +goose Up
 CREATE TABLE users (
-    id int NOT NULL PRIMARY KEY,
+    id SERIAL NOT NULL PRIMARY KEY,
     fb_uid text,
     username text,
     email text
 );
 
 CREATE TABLE events (
-    id int NOT NULL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     user_id int REFERENCES users(id) ON DELETE CASCADE,
     name text,
     description text,
@@ -17,7 +17,7 @@ CREATE TABLE events (
 );
 
 CREATE TABLE points (
-    id int NOT NULL PRIMARY KEY,
+    id SERIAL NOT NULL PRIMARY KEY,
     event_id int references events(id) ON DELETE CASCADE,
     point geography(POINT),
     description text,
@@ -30,7 +30,7 @@ CREATE TABLE points (
 );
 
 CREATE TABLE userpoint (
-    id int NOT NULL PRIMARY KEY,
+    id SERIAL NOT NULL PRIMARY KEY,
     user_id int references users(id) ON DELETE CASCADE,
     point_id int references points(id) ON DELETE CASCADE,
     is_solved boolean

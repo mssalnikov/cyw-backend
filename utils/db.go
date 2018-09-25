@@ -1,9 +1,10 @@
 package utils
 
 import "database/sql"
+import "github.com/go-redis/redis"
 
 var (
-	// DBCon is the connection handle
-	// for the database
 	DBCon *sql.DB
+
+	RedisCon *redis.Client
 )
