@@ -9,10 +9,6 @@ import (
 	"log"
 )
 
-func getDefaultHeader(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-}
-
 
 //// GetUsers return all users
 //func (uh *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
@@ -31,37 +27,36 @@ func getDefaultHeader(w http.ResponseWriter) {
 
 // GetUser return user by id
 func (uh *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
-	getDefaultHeader(w)
-	userId, err := utils.TryToGetUserIdByToken(r.Header["X-Session-Token"][0])
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
-		return
-	}
-
-	// get user by id
-	user, err := uh.getUser(userId)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
-		return
-	}
-
-	result, err := user.ToJSON()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, errorMessage(http.StatusInternalServerError, err.Error()))
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, result)
+	//userId, err := utils.TryToGetUserIdByToken(r.Header["X-Session-Token"][0])
+	//if err != nil {
+	//	w.WriteHeader(http.StatusBadRequest)
+	//	fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
+	//	return
+	//}
+	//
+	//// get user by id
+	//user, err := uh.getUser(userId)
+	//if err != nil {
+	//	w.WriteHeader(http.StatusBadRequest)
+	//	fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
+	//	return
+	//}
+	//
+	//result, err := user.ToJSON()
+	//if err != nil {
+	//	w.WriteHeader(http.StatusInternalServerError)
+	//	fmt.Fprint(w, errorMessage(http.StatusInternalServerError, err.Error()))
+	//	return
+	//}
+	//
+	//w.WriteHeader(http.StatusOK)
+	//w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	//fmt.Fprint(w, result)
 }
 
 
 // GetUser return user by id
 func (uh *UserHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
-	getDefaultHeader(w)
 	//userId, err := utils.TryToGetUserIdByToken(r.Header["X-Session-Token"][0])
 	userId, err := utils.CheckAuthToken(r.Header["X-Session-Token"][0])
 
@@ -93,13 +88,14 @@ func (uh *UserHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	fmt.Fprint(w, result)
 }
 
 func (uh *UserHandler) Auth(w http.ResponseWriter, r *http.Request) {
-	getDefaultHeader(w)
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
+		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
 		return
@@ -109,6 +105,7 @@ func (uh *UserHandler) Auth(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(body, &fbAuth)
 
 	if err != nil {
+		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
 		return
@@ -121,14 +118,21 @@ func (uh *UserHandler) Auth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
+		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
 		return
 	}
 	token, err := uh.auth(fbAuth.FbAccessToken)
-	log.Println(token)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
+		return
+	}
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, token)
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Write(token)
 }
 
 //// issueSession issues a cookie session after successful Facebook login

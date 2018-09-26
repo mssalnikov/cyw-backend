@@ -99,13 +99,14 @@ func main() {
 	// state param cookies require HTTPS by default; disable for localhost development
 
 	r := mux.NewRouter()
+	//r.HandleFunc("/", uh.Auth).Methods("POST")
 	r.HandleFunc("/auth", uh.Auth).Methods("POST")
-	r.HandleFunc("/profile", YourHandler).Methods("GET")
+	r.HandleFunc("/profile", uh.Auth).Methods("POST")
 
 	//r.Handle("/facebook/login", facebook.StateHandler(stateConfig, facebook.LoginHandler(oauth2Config, nil)))
 	//r.Handle("/facebook/callback", facebook.StateHandler(stateConfig, facebook.CallbackHandler(oauth2Config, uh.IssueSession(), nil)))
 
-	//r.Use(utils.AuthenticationMiddleware)
+	r.Use(utils.AuthenticationMiddleware)
 
 	mx := http.NewServeMux()
 	//stateConfig := gologin.DebugOnlyCookieConfig

@@ -11,8 +11,7 @@ import (
 	u "../../utils"
 	"database/sql"
 	"github.com/satori/go.uuid"
-	//"github.com/gkiryaziev/go-gorilla-sqlx/utils"
-	//"github.com/gkiryaziev/go-gorilla-sqlx/models"
+	"github.com/bitly/go-simplejson"
 	"github.com/gkiryaziev/go-gorilla-sqlx/models"
 	"github.com/gkiryaziev/go-gorilla-sqlx/utils"
 )
@@ -150,38 +149,39 @@ func (us *UserHandler) insertUser(user User) (int64, error) {
 	return id, nil
 }
 
-func (us *UserHandler) auth(fbAccessToken string) (string, error) {
+func (us *UserHandler) auth(fbAccessToken string) ([]byte, error) {
 	log.Println(fbAccessToken)
 	url := fmt.Sprintf("https://graph.facebook.com/me?fields=id,name,email&access_token=%s", fbAccessToken)
 	response, err := http.Get(url)
 
 	if err != nil {
-		fmt.Printf("%s", err)
-		return "", err
+
+		fmt.Println(err)
+		return nil, err
 	}
 	contents, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		fmt.Printf("%s", err)
-		return "", err
+		fmt.Println(err)
+		return nil, err
 	}
 
 	var resp AccessResponse
 	err = json.Unmarshal(contents, &resp)
-	log.Println(resp)
-	log.Println(resp.Id)
 	if err != nil {
-		log.Println("err")
-		panic(err)
+		fmt.Println(err)
+		return nil, err
 	}
 	if resp.Error.Message != "" {
-		log.Println("err")
+		return nil, errors.New(resp.Error.Message)
 	}
 
 	var user User
 
-	row := u.DBCon.QueryRow(`SELECT * FROM users WHERE fb_uid = $1 ORDER BY id`, resp.Id)
-	err = row.Scan(&user.Id, &user.FBUid, &user.UserName, &user.Email, &user.DateAdded)
-	log.Println(err)
+	row := u.DBCon.QueryRow(`SELECT * FROM users WHERE fb_uid = $1`, resp.Id)
+	err = row.Scan(&user.Id, &user.FBUid, &user.UserName, &user.Email)
+
+	jResponse := simplejson.New()
+
 	switch err {
 	case sql.ErrNoRows:
 		id := 0
@@ -189,23 +189,37 @@ func (us *UserHandler) auth(fbAccessToken string) (string, error) {
 		err = u.DBCon.QueryRow(sqlStatement, resp.Id, resp.Name, resp.Email).Scan(&id)
 		if err != nil {
 			log.Println(err)
-			return "", err
+			return nil, err
 		}
 		log.Println("New record ID is:", id)
 		newToken := uuid.Must(uuid.NewV4())
-		//fmt.Printf("UUIDv4: %s\n", u1)
+
 		key := fmt.Sprintf("TOKEN:%s", newToken)
 		u.RedisCon.Set(key, id, 0).Err()
-		return newToken.String(), nil
+		jResponse.Set("auth_token", newToken.String())
+		jResponse.Set("username", resp.Name)
+
+		payload, err := jResponse.MarshalJSON()
+		if err != nil {
+			log.Println(err)
+		}
+		return payload, nil
 	case nil:
-		log.Println(user)
+		//log.Println(user)
 		newToken := uuid.Must(uuid.NewV4())
 		//fmt.Printf("UUIDv4: %s\n", u1)
 		key := fmt.Sprintf("TOKEN:%s", newToken)
 		u.RedisCon.Set(key, user.Id, 0).Err()
-		return newToken.String(), nil
+		jResponse.Set("auth_token", newToken.String())
+		jResponse.Set("username", user.UserName)
+
+		payload, err := jResponse.MarshalJSON()
+		if err != nil {
+			log.Println(err)
+		}
+		return payload, nil
 	default:
 		log.Println("Smth went wrong")
-		return "", &errorString{"Smth went wrong"}
+		return nil, &errorString{"Smth went wrong"}
 	}
 }
