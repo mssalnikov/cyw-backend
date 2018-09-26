@@ -9,19 +9,32 @@ import (
 	"encoding/json"
 )
 
-type NewEvent struct {
+type AcceptEvent struct {
 	Name string `json:"name"`
 	Description string  `json:"description"`
 }
 
+type NewEvent struct {
+	Lat float32 `json:"lat"`
+	Lng float32  `json:"lng"`
+	DefaultLang string  `json:"default_lang"`
+	AddressType string  `json:"address_type"`
+}
 
-func makeEvent(name string, description string) error{
+
+func makeEvent(lat float32, lng float32, name string, description string) error{
 	config, err := conf.NewConfig("config.yaml").Load()
 	if err != nil {
 		return err
 	}
 
-	ev	 := &NewEvent{Name: name, Description: description}
+	// for our testing application we're making only free addresses in ru_RU locale
+	ev := &NewEvent{
+		Lat: lat,
+		Lng: lng,
+		DefaultLang: "ru",
+		AddressType: "free"}
+
 	e, err := json.Marshal(ev)
 	if err != nil {
 		fmt.Println(err)
@@ -36,9 +49,3 @@ func makeEvent(name string, description string) error{
 	log.Println(resp)
 	return nil
 }
-
-
-//
-//func main() {
-//	makeEvent("ololo", "mamka tvoya")
-//}

@@ -27,37 +27,30 @@ import (
 
 // GetUser return user by id
 func (uh *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
-	//userId, err := utils.TryToGetUserIdByToken(r.Header["X-Session-Token"][0])
-	//if err != nil {
-	//	w.WriteHeader(http.StatusBadRequest)
-	//	fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
-	//	return
-	//}
-	//
-	//// get user by id
-	//user, err := uh.getUser(userId)
-	//if err != nil {
-	//	w.WriteHeader(http.StatusBadRequest)
-	//	fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
-	//	return
-	//}
-	//
-	//result, err := user.ToJSON()
-	//if err != nil {
-	//	w.WriteHeader(http.StatusInternalServerError)
-	//	fmt.Fprint(w, errorMessage(http.StatusInternalServerError, err.Error()))
-	//	return
-	//}
-	//
-	//w.WriteHeader(http.StatusOK)
-	//w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	//fmt.Fprint(w, result)
+	// Todo get userId
+	userId := int64(2)
+	user, err := uh.getUser(userId)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
+		return
+	}
+
+	result, err := user.ToJSON()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, errorMessage(http.StatusInternalServerError, err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	fmt.Fprint(w, result)
 }
 
 
 // GetUser return user by id
 func (uh *UserHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
-	//userId, err := utils.TryToGetUserIdByToken(r.Header["X-Session-Token"][0])
 	userId, err := utils.CheckAuthToken(r.Header["X-Session-Token"][0])
 
 	if userId == 0 {
@@ -72,7 +65,6 @@ func (uh *UserHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// get user by id
 	user, err := uh.getUser(userId)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

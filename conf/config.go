@@ -3,7 +3,7 @@ package conf
 import (
 	"io/ioutil"
 
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 // ConfigManager struct
@@ -34,12 +34,12 @@ func (cm *ConfigManager) Load() (*Config, error) {
 
 // Config struct
 type Config struct {
-	Debug bool `yaml:"debug"`
-	DB    DB   `yaml:"db"`
-	Host  Host `yaml:"host"`
-	AuthHost  Host `yaml:"authhost"`
-	Auth  Auth `yaml:"auth"`
-	Navi  Navi `yaml:"navi"`
+	Debug    bool `yaml:"debug"`
+	DB       DB   `yaml:"db"`
+	Host     Host `yaml:"host"`
+	AuthHost Host `yaml:"authhost"`
+	Auth     Auth `yaml:"auth"`
+	Navi     Navi `yaml:"navi"`
 }
 
 // DB struct

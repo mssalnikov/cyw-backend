@@ -63,7 +63,6 @@ func (us *UserHandler) getUsers() *u.ResultTransformer {
 
 // getUser return user by id from db
 func (us *UserHandler) getUser(id int64) (*utils.ResultTransformer, error) {
-
 	// concurrency safe
 	us.lck.RLock()
 	defer us.lck.RUnlock()
@@ -83,7 +82,6 @@ func (us *UserHandler) getUser(id int64) (*utils.ResultTransformer, error) {
 
 // deleteUserByID delete user by id and get rows affected in db
 func (us *UserHandler) deleteUserByID(id int64) error {
-
 	// concurrency safe
 	us.lck.Lock()
 	defer us.lck.Unlock()
@@ -131,7 +129,6 @@ func (us *UserHandler) deleteUser(user User) error {
 
 // insertUser insert new user and get last id from db
 func (us *UserHandler) insertUser(user User) (int64, error) {
-
 	// concurrency safe
 	us.lck.Lock()
 	defer us.lck.Unlock()
@@ -150,7 +147,6 @@ func (us *UserHandler) insertUser(user User) (int64, error) {
 }
 
 func (us *UserHandler) auth(fbAccessToken string) ([]byte, error) {
-	log.Println(fbAccessToken)
 	url := fmt.Sprintf("https://graph.facebook.com/me?fields=id,name,email&access_token=%s", fbAccessToken)
 	response, err := http.Get(url)
 
