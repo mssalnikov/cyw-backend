@@ -3,7 +3,6 @@ package users
 import (
 	"fmt"
 	"net/http"
-	"../../utils"
 	"io/ioutil"
 	"encoding/json"
 	"log"
@@ -49,40 +48,40 @@ func (uh *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 
-// GetUser return user by id
-func (uh *UserHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
-	userId, err := utils.CheckAuthToken(r.Header["X-Session-Token"][0])
-
-	if userId == 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
-		return
-	}
-
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
-		return
-	}
-
-	user, err := uh.getUser(userId)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
-		return
-	}
-
-	result, err := user.ToJSON()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, errorMessage(http.StatusInternalServerError, err.Error()))
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	fmt.Fprint(w, result)
-}
+//// GetUser return user by id
+//func (uh *UserHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
+//	userId, err := utils.CheckAuthToken(r.Header["X-Session-Token"][0])
+//
+//	if userId == 0 {
+//		w.WriteHeader(http.StatusBadRequest)
+//		fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
+//		return
+//	}
+//
+//	if err != nil {
+//		w.WriteHeader(http.StatusBadRequest)
+//		fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
+//		return
+//	}
+//
+//	user, err := uh.getUser(userId)
+//	if err != nil {
+//		w.WriteHeader(http.StatusBadRequest)
+//		fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
+//		return
+//	}
+//
+//	result, err := user.ToJSON()
+//	if err != nil {
+//		w.WriteHeader(http.StatusInternalServerError)
+//		fmt.Fprint(w, errorMessage(http.StatusInternalServerError, err.Error()))
+//		return
+//	}
+//
+//	w.WriteHeader(http.StatusOK)
+//	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+//	fmt.Fprint(w, result)
+//}
 
 func (uh *UserHandler) Auth(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
