@@ -16,8 +16,8 @@ type EventHandler struct {
 }
 
 // NewUserHandler return new UserHandler object
-func NewEventHandler(db *sqlx.DB) *EventHandler {
-	return &EventHandler{db: db}
+func NewEventHandler() *EventHandler {
+	return &EventHandler{}
 }
 
 // errorMessage return error message as json string

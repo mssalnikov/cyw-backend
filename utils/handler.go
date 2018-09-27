@@ -8,10 +8,10 @@ import (
 )
 
 func AuthenticationMiddleware(next http.Handler) http.Handler {
-	log.Println(next)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("X-Session-Token")
-		log.Println(r.URL.String())
+		token := r.Header.Get("auth_token")
+		log.Println(token)
+
 		switch url := r.URL.String(); url {
 		case "/":
 			next.ServeHTTP(w, r)

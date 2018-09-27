@@ -2,9 +2,59 @@ package events
 
 import (
 	"net/http"
+	"io/ioutil"
+	"log"
+	"fmt"
+	"encoding/json"
+	u "../../utils"
+
 )
 
-func (uh *EventHandler) CreateEvent(w http.ResponseWriter, r *http.Request) {
+func (eh *EventHandler) NewEvent(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
+		return
+	}
+	token := r.Header.Get("auth_token")
+	userId, err := u.RedisCon.Get(fmt.Sprintf("TOKEN:%s", token)).Int64()
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
+		return
+	}
+
+	var event NewEvent
+	err = json.Unmarshal(body, &event)
+
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
+		return
+	}
+
+	eventId, err := eh.createEvent(event, userId)
+
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
+		return
+	}
+
+
+	if eventId == 0 {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, errorMessage(http.StatusBadRequest, err.Error()))
+		return
+	}
+
+	//points, err := eh.createPoints()
 	//// Todo get userId
 	//userId := int64(2)
 	//user, err := uh.getUser(userId)

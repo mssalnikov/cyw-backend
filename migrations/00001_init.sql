@@ -19,13 +19,10 @@ CREATE TABLE events (
 CREATE TABLE points (
     id SERIAL NOT NULL PRIMARY KEY,
     event_id int references events(id) ON DELETE CASCADE,
-    point geography(POINT),
-    description text,
     naviaddress text,
-    have_question boolean,
     question text,
     answer text,
-    is_chainded boolean,
+    token int,
     next_point int
 );
 

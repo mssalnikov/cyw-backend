@@ -14,6 +14,7 @@ import (
 	"github.com/go-redis/redis"
 	"database/sql"
 	"./handlers/users"
+	"./handlers/events"
 )
 
 // checkError check errors
@@ -72,39 +73,17 @@ func main() {
 		config.Auth.Port,
 	)
 
-	//db, err := sqlx.Connect("postgres", sqlBind)
-	//checkError(err)
-	//db.SetMaxIdleConns(100)
-	//defer db.Close()
-
-	// 	// handlers
-	//userHandler := users.NewUserHandler(db)
-	//welcomeHandler := welcome.NewWelcomeHandler()
-
-	//mx := mux.NewRouter()
-	//mux := http.NewServeMux()
-	//mux.HandleFunc("/", welcomeHandler.WelcomePage)
-	//mux.Handle("/profile", utils.RequireLogin(http.HandlerFunc(utils.ProfileHandler)))
-	//
-
 	uh := users.NewUserHandler()
-
-	//oauth2Config := &oauth2.Config{
-	//	ClientID:     config.Auth.FBClient,
-	//	ClientSecret: config.Auth.FBSecret,
-	//	RedirectURL:  "http://" + config.AuthHost.IP + ":" + config.AuthHost.Port + "/facebook/callback",
-	//	Endpoint:     facebookOAuth2.Endpoint,
-	//	Scopes:       []string{"email"},
-	//}
-	// state param cookies require HTTPS by default; disable for localhost development
+	eh := events.NewEventHandler()
 
 	r := mux.NewRouter()
 	//r.HandleFunc("/", uh.Auth).Methods("POST")
 	r.HandleFunc("/auth", uh.Auth).Methods("POST")
 	r.HandleFunc("/profile", uh.Auth).Methods("POST")
 
-	//r.Handle("/facebook/login", facebook.StateHandler(stateConfig, facebook.LoginHandler(oauth2Config, nil)))
-	//r.Handle("/facebook/callback", facebook.StateHandler(stateConfig, facebook.CallbackHandler(oauth2Config, uh.IssueSession(), nil)))
+	// events
+	r.HandleFunc("/new_event", eh.NewEvent).Methods("POST")
+
 
 	r.Use(utils.AuthenticationMiddleware)
 
