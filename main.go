@@ -24,16 +24,7 @@ func checkError(err error) {
 	}
 }
 
-func YourHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Gorilla!\n"))
-}
-
-type authenticationMiddleware struct {
-	tokenUsers map[string]string
-}
-
 func main() {
-
 	// load config
 	config, err := conf.NewConfig("config.yaml").Load()
 	checkError(err)
@@ -56,46 +47,27 @@ func main() {
 		DB:       0,  // use default DB
 	})
 
-
-	// redis connection client
-	//redisClient := redis.NewClient(&redis.Options{
-	//	Addr:     "localhost:6379",
-	//	Password: "", // no password set
-	//	DB:       0,  // use default DB
-	//})
-	//
-	//pong, err := redisClient.Ping().Result()
-	//fmt.Println(pong, err)
-
-	// mysql connection string
-	hostFacebookBind := fmt.Sprintf("%s:%s",
-		config.Auth.IP,
-		config.Auth.Port,
-	)
-
 	uh := users.NewUserHandler()
 	eh := events.NewEventHandler()
 
 	r := mux.NewRouter()
-	//r.HandleFunc("/", uh.Auth).Methods("POST")
+
+	// users
 	r.HandleFunc("/auth", uh.Auth).Methods("POST")
-	r.HandleFunc("/profile", uh.Auth).Methods("POST")
+	r.HandleFunc("/profile", uh.GetUser).Methods("GET")
 
 	// events
 	r.HandleFunc("/new_event", eh.NewEvent).Methods("POST")
-
+	r.HandleFunc("/events", eh.AllEvents).Methods("GET")
+	r.HandleFunc("/event", eh.GetEvent).Methods("GET")
+	r.HandleFunc("/point", eh.GetPoint).Methods("GET")
+	r.HandleFunc("/join_event", eh.JoinEvent).Methods("POST")
+	r.HandleFunc("/enter_token", eh.EnterToken).Methods("POST")
+	r.HandleFunc("/answer_question", eh.AnswerQuestion).Methods("POST")
 
 	r.Use(utils.AuthenticationMiddleware)
-
-	mx := http.NewServeMux()
-	//stateConfig := gologin.DebugOnlyCookieConfig
-	//mx.Handle("/auth", facebook.StateHandler(stateConfig, facebook.LoginHandler(oauth2Config, nil)))
-	//mx.Handle("/facebook/callback", facebook.StateHandler(stateConfig, facebook.CallbackHandler(oauth2Config, uh.IssueSession(hostFacebookBind), nil)))
 
 	// start server
 	log.Println("Listening on", hostBind)
 	http.ListenAndServe(hostBind, r)
-	//checkError(err)
-	http.ListenAndServe(hostFacebookBind, mx)
-	//checkError(err)
 }

@@ -9,6 +9,9 @@ type User struct {
 	//DateAdded time.Time `db:"date_added" json:"date_added"`
 }
 
+type GetUser struct {
+	Id      int64     `json:"id"`
+}
 // Header struct
 type FbAuth struct {
 	FbAccessToken string `json:"fbAccessToken"`

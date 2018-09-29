@@ -20,6 +20,7 @@ CREATE TABLE points (
     event_id int references events(id) ON DELETE CASCADE,
     container text,
     naviaddress text,
+    name text,
     question text,
     answer text,
     token int,
@@ -30,6 +31,7 @@ CREATE TABLE userpoint (
     id SERIAL NOT NULL PRIMARY KEY,
     user_id int references users(id) ON DELETE CASCADE,
     point_id int references points(id) ON DELETE CASCADE,
+    is_found boolean,
     is_solved boolean
 );
 

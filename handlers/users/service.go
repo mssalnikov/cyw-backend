@@ -16,7 +16,6 @@ import (
 	"github.com/gkiryaziev/go-gorilla-sqlx/utils"
 )
 
-
 type errorString struct {
 	s string
 }
@@ -26,39 +25,18 @@ func (e *errorString) Error() string {
 }
 
 type FBError struct {
-	Message string `json:"message"`
-	Type string `json:"type"`
+	Message        string `json:"message"`
+	Type           string `json:"type"`
 	OAuthException string `json:"OAuthException"`
-	Code int `json:"code"`
-	Fbtrace_id string `json:"fbtrace_id"`
+	Code           int    `json:"code"`
+	Fbtrace_id     string `json:"fbtrace_id"`
 }
 
 type AccessResponse struct {
-	Name string `json:"name"`
-	Id string  `json:"id"`
-	Email string `json:"email"`
+	Name  string  `json:"name"`
+	Id    string  `json:"id"`
+	Email string  `json:"email"`
 	Error FBError `json:"error,omitempty"`
-}
-
-
-// getUsers return all users from db
-func (us *UserHandler) getUsers() *u.ResultTransformer {
-
-	// concurrency safe
-	us.lck.RLock()
-	defer us.lck.RUnlock()
-
-	users := []User{}
-
-	err := us.db.Select(&users, "select * from tbl_users order by id")
-	if err != nil {
-		panic(err)
-	}
-
-	header := models.Header{Status: "ok", Count: len(users), Data: users}
-	result := u.NewResultTransformer(header)
-
-	return result
 }
 
 // getUser return user by id from db
@@ -67,9 +45,17 @@ func (us *UserHandler) getUser(id int64) (*utils.ResultTransformer, error) {
 	us.lck.RLock()
 	defer us.lck.RUnlock()
 
+	//err := u.DBCon.QueryRow("SELECT id, user_id, name, description, start, finish FROM events WHERE id = ?", eventId).Scan(&id, &userId, &name, &description, &start, &finish)
+	//var (
+	//	userId   int64
+	//	username string
+	//)
+
 	user := User{}
 
-	err := us.db.Get(&user, "select * from users where id = ?", id)
+	row := u.DBCon.QueryRow(`SELECT * FROM users WHERE id = $1`, id)
+	err := row.Scan(&user.Id, &user.FBUid, &user.UserName, &user.Email)
+
 	if err != nil {
 		return nil, err
 	}
@@ -87,30 +73,6 @@ func (us *UserHandler) deleteUserByID(id int64) error {
 	defer us.lck.Unlock()
 
 	result, err := us.db.NamedExec("delete from users where id = :id", map[string]interface{}{"id": id})
-	if err != nil {
-		return err
-	}
-
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if rows <= 0 {
-		return errors.New("0 Rows Affected")
-	}
-
-	return nil
-}
-
-// deleteUser delete user and get rows affected in db
-func (us *UserHandler) deleteUser(user User) error {
-
-	// concurrency safe
-	us.lck.Lock()
-	defer us.lck.Unlock()
-
-	result, err := us.db.NamedExec("delete from users where id = :id", user)
 	if err != nil {
 		return err
 	}
@@ -146,7 +108,7 @@ func (us *UserHandler) insertUser(user User) (int64, error) {
 	return id, nil
 }
 
-func (us *UserHandler) auth(fbAccessToken string) ([]byte, error) {
+func (us *UserHandler) auth(fbAccessToken string) (*utils.ResultTransformer, error) {
 	url := fmt.Sprintf("https://graph.facebook.com/me?fields=id,name,email&access_token=%s", fbAccessToken)
 	response, err := http.Get(url)
 
@@ -199,7 +161,10 @@ func (us *UserHandler) auth(fbAccessToken string) ([]byte, error) {
 		if err != nil {
 			log.Println(err)
 		}
-		return payload, nil
+
+		header := models.Header{Status: "ok", Count: 1, Data: payload}
+		result := utils.NewResultTransformer(header)
+		return result, nil
 	case nil:
 		//log.Println(user)
 		newToken := uuid.Must(uuid.NewV4())
@@ -213,7 +178,10 @@ func (us *UserHandler) auth(fbAccessToken string) ([]byte, error) {
 		if err != nil {
 			log.Println(err)
 		}
-		return payload, nil
+
+		header := models.Header{Status: "ok", Count: 1, Data: payload}
+		result := utils.NewResultTransformer(header)
+		return result, nil
 	default:
 		log.Println("Smth went wrong")
 		return nil, &errorString{"Smth went wrong"}
