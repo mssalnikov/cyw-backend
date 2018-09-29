@@ -12,18 +12,18 @@ CREATE TABLE events (
     name text,
     description text,
     start timestamp without time zone,
-    finish timestamp without time zone,
-    is_private bool
+    finish timestamp without time zone
 );
 
 CREATE TABLE points (
     id SERIAL NOT NULL PRIMARY KEY,
     event_id int references events(id) ON DELETE CASCADE,
+    container text,
     naviaddress text,
     question text,
     answer text,
     token int,
-    next_point int
+    prev_point_id int
 );
 
 CREATE TABLE userpoint (
@@ -33,7 +33,15 @@ CREATE TABLE userpoint (
     is_solved boolean
 );
 
+CREATE TABLE userevent (
+    id SERIAL NOT NULL PRIMARY KEY,
+    user_id int references users(id) ON DELETE CASCADE,
+    event_id int references events(id) ON DELETE CASCADE,
+    is_passed boolean
+);
+
 -- +goose Down
+DROP TABLE userevent;
 DROP TABLE userpoint;
 DROP TABLE points;
 DROP TABLE events;
