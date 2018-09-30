@@ -157,8 +157,6 @@ func (es *EventHandler) joinEvent(eventId int64, userId int64) (*utils.ResultTra
 		log.Println(err)
 		return nil, err
 	}
-	log.Println(eventId)
-	log.Println(userId)
 
 	query := fmt.Sprintf("SELECT id FROM points WHERE event_id = %d", eventId)
 	rows, err := u.DBCon.Query(query)
@@ -176,7 +174,7 @@ func (es *EventHandler) joinEvent(eventId int64, userId int64) (*utils.ResultTra
 			return nil, err
 		}
 			sqlStatement := `INSERT INTO userpoint (user_id, point_id, is_solved) values ($1, $2, $3) RETURNING id`
-			err := u.DBCon.QueryRow(sqlStatement, userId, eventId, false)
+			err := u.DBCon.QueryRow(sqlStatement, userId, p.Id, false)
 			if err != nil {
 				log.Println(err)
 				return nil, errors.New("can't create userpoint")
