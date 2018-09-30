@@ -106,6 +106,7 @@ func (es *EventHandler) getEvent(eventId int64) (*utils.ResultTransformer, error
 		id uint64
 		userId uint64
 		name string
+		question string
 		description string
 		start time.Time
 		finish time.Time
@@ -114,7 +115,7 @@ func (es *EventHandler) getEvent(eventId int64) (*utils.ResultTransformer, error
 	if err != nil {
 		log.Println(err)
 	}
-	query := fmt.Sprintf("SELECT p.id, p.name, up.is_solved, up.is_found FROM points as p LEFT OUTER JOIN userpoint as up on p.id = up.point_id WHERE p.event_id = %d", eventId)
+	query := fmt.Sprintf("SELECT p.id, p.name, p.question, up.is_solved, up.is_found FROM points as p LEFT OUTER JOIN userpoint as up on p.id = up.point_id WHERE p.event_id = %d", eventId)
 	rows, err := u.DBCon.Query(query)
 	if err != nil {
 		log.Println(err)
@@ -124,7 +125,7 @@ func (es *EventHandler) getEvent(eventId int64) (*utils.ResultTransformer, error
 	points := []LabelPoints{}
 	for rows.Next() {
 		var p LabelPoints
-		err = rows.Scan(&p.Id, &p.Name, &p.IsSolved, &p.IsFound)
+		err = rows.Scan(&p.Id, &p.Name, &p.Question, &p.IsSolved, &p.IsFound)
 		if err != nil {
 			log.Printf("Scan: %v", err)
 		}

@@ -50,6 +50,7 @@ type PointId struct {
 type LabelPoints struct {
 	Id       uint64 `json:"id"`
 	Name     string `json:"name"`
+	Question string `json:"question"`
 	IsSolved bool   `json:"is_solved"`
 	IsFound  bool   `json:"is_found"`
 }
@@ -132,7 +133,7 @@ type EventPoint struct {
 }
 
 type EnterToken struct {
-	PointId int64 `json:"id"`
+	PointId int64  `json:"id"`
 	Token   string `json:"token"`
 }
 
