@@ -17,6 +17,14 @@ import (
 	"database/sql"
 )
 
+type errorString struct {
+	s string
+}
+
+func (e *errorString) Error() string {
+	return e.s
+}
+
 func (es *EventHandler) allEvents() (*utils.ResultTransformer, error) {
 	es.lck.Lock()
 	defer es.lck.Unlock()
@@ -207,7 +215,14 @@ func (es *EventHandler) joinEvent(eventId int64, userId int64) (*utils.ResultTra
 		result := utils.NewResultTransformer(header)
 
 		return result, nil
+	default:
+		return nil, &errorString{"Smth went wrong"}
 	}
+
+	header := models.Header{Status: "ok"}
+	result := utils.NewResultTransformer(header)
+
+	return result, nil
 }
 
 
