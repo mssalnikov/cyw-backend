@@ -128,6 +128,7 @@ type EventPoint struct {
 	Name     string  `json:"name"`
 	Question string  `json:"question"`
 	Answer   string  `json:"answer"`
+	Token    string  `json:"token"`
 }
 
 type EnterToken struct {

@@ -190,11 +190,11 @@ func (es *EventHandler) joinEvent(eventId int64, userId int64) (*utils.ResultTra
 }
 
 
-func (es *EventHandler) checkCode(userId int64, pointId int64, token int64) (*utils.ResultTransformer, error) {
+func (es *EventHandler) checkCode(userId int64, pointId int64, token string) (*utils.ResultTransformer, error) {
 	es.lck.Lock()
 	defer es.lck.Unlock()
 
-	var rightToken int64
+	var rightToken string
 	err := u.DBCon.QueryRow("SELECT token FROM points where point_id = $1", pointId).Scan(&rightToken)
 	if err != nil {
 		log.Println(err)
@@ -220,7 +220,49 @@ func (es *EventHandler) checkCode(userId int64, pointId int64, token int64) (*ut
 		header := models.Header{Status: "fail"}
 		result := utils.NewResultTransformer(header)
 		return result, errors.New("wrong token")
+	}
+}
 
+func (es *EventHandler) checkEventSolved(userId int64, eventId int64) (*utils.ResultTransformer, error) {
+	es.lck.Lock()
+	defer es.lck.Unlock()
+
+	var allPoints int64
+	err := u.DBCon.QueryRow("SELECT COUNT(id) FROM points  WHERE event_id = $1", eventId).Scan(&allPoints)
+
+
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	var solvedPoints int64
+	err = u.DBCon.QueryRow("SELECT COUNT(p.id) FROM points p left outer join userpoint up on p.id = up.point_id WHERE p.event_id = $1 and is_solved =TRUE and up.user_id = $2;", eventId, userId).Scan(&solvedPoints)
+
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	if allPoints == solvedPoints {
+		sqlStatement := `UPDATE userevent SET is_passed = TRUE WHERE user_id = $1 and event_id = $2;`
+		_, err = u.DBCon.Exec(sqlStatement, userId, eventId)
+		if err != nil {
+			log.Println(err)
+			return nil, errors.New("can't update userevent")
+		}
+
+		header := models.Header{Status: "ok"}
+		result := utils.NewResultTransformer(header)
+		return result, nil
+	} else {
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+
+		header := models.Header{Status: "fail"}
+		result := utils.NewResultTransformer(header)
+		return result, errors.New("not passed")
 	}
 }
 
@@ -350,7 +392,7 @@ func (es *EventHandler) createNaviaddress(point EventPoint, eventId int64, prevP
 	var id int64
 	sqlStatement := `INSERT INTO points (event_id, container, naviaddress, name, question, answer, token, prev_point_id) values ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`
 	err = u.DBCon.QueryRow(sqlStatement, eventId, naviResp.Result.Container, naviResp.Result.Naviaddress, point.Name, point.Question, point.Answer,
-		u.RandomFourDigits(), prevPointId).Scan(&id)
+		point.Token, prevPointId).Scan(&id)
 
 	if err != nil {
 		log.Println(err)

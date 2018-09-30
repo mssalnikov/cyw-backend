@@ -23,7 +23,7 @@ CREATE TABLE points (
     name text,
     question text,
     answer text,
-    token int,
+    token text,
     prev_point_id int
 );
 
