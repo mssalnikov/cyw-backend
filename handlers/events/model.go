@@ -50,11 +50,13 @@ type PointId struct {
 }
 
 type LabelPoints struct {
-	Id       uint64 `json:"id"`
-	Name     string `json:"name"`
-	Question string `json:"question"`
-	IsSolved bool   `json:"is_solved"`
-	IsFound  bool   `json:"is_found"`
+	Id          uint64 `json:"id"`
+	Name        string `json:"name"`
+	Question    string `json:"question"`
+	Container   string `json:"question"`
+	Naviaddress string `json:"question"`
+	IsSolved    bool   `json:"is_solved"`
+	IsFound     bool   `json:"is_found"`
 }
 
 type PointOfEvent struct {

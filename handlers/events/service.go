@@ -82,7 +82,7 @@ func (es *EventHandler) getPoint(userId int64, pointId int64) (*utils.ResultTran
 		naviaddress string
 		container string
 	)
-	err := u.DBCon.QueryRow("SELECT p.id, p.name, p.question, p.token, p.container, p.naviaddress, up.is_found, up.is_solved FROM points p LEFT OUTER JOIN userpoint as up on p.id = up.point_id WHERE p.id = $1", pointId).Scan(&id, &name, &question, &token, &isFound, &isSolved)
+	err := u.DBCon.QueryRow("SELECT p.id, p.name, p.question, p.token, p.container, p.naviaddress, up.is_found, up.is_solved FROM points p LEFT OUTER JOIN userpoint as up on p.id = up.point_id WHERE p.id = $1", pointId).Scan(&id, &name, &question, &container, &naviaddress, &token, &isFound, &isSolved)
 	if err != nil {
 		log.Println(err)
 	}
@@ -129,7 +129,7 @@ func (es *EventHandler) getEvent(eventId int64) (*utils.ResultTransformer, error
 	if err != nil {
 		log.Println(err)
 	}
-	query := fmt.Sprintf("SELECT p.id, p.name, p.question, up.is_solved, up.is_found FROM points as p LEFT OUTER JOIN userpoint as up on p.id = up.point_id WHERE p.event_id = %d", eventId)
+	query := fmt.Sprintf("SELECT p.id, p.name, p.question, p.container, p.naviaddress, up.is_solved, up.is_found FROM points as p LEFT OUTER JOIN userpoint as up on p.id = up.point_id WHERE p.event_id = %d", eventId)
 	rows, err := u.DBCon.Query(query)
 	if err != nil {
 		log.Println(err)
@@ -139,7 +139,8 @@ func (es *EventHandler) getEvent(eventId int64) (*utils.ResultTransformer, error
 	points := []LabelPoints{}
 	for rows.Next() {
 		var p LabelPoints
-		err = rows.Scan(&p.Id, &p.Name, &p.Question, &p.IsSolved, &p.IsFound)
+
+		err = rows.Scan(&p.Id, &p.Name, &p.Question, &p.Container, &p.Naviaddress, &p.IsSolved, &p.IsFound)
 		if err != nil {
 			log.Printf("Scan: %v", err)
 		}
