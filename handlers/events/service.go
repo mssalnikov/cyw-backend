@@ -164,8 +164,7 @@ func (es *EventHandler) joinEvent(eventId int64, userId int64) (*utils.ResultTra
 		return nil, err
 	}
 
-	query := fmt.Sprintf("SELECT id FROM points WHERE event_id = %d", eventId)
-	rows, err := u.DBCon.Query(query)
+	rows, err := u.DBCon.Query("SELECT id FROM points WHERE event_id = $1", eventId)
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New("can't find event")
