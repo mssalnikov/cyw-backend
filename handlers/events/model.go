@@ -36,11 +36,13 @@ type EventFromDBForUser struct {
 }
 
 type PointFromDbForUser struct {
-	Id       uint64 `json:"id"`
-	Name     string `json:"name"`
-	Question string `json:"question"`
-	IsSolved bool   `json:"is_solved"`
-	IsFound  bool   `json:"is_found"`
+	Id          uint64 `json:"id"`
+	Name        string `json:"name"`
+	Question    string `json:"question"`
+	Container   string `json:"container"`
+	Naviaddress string `json:"naviaddress"`
+	IsSolved    bool   `json:"is_solved"`
+	IsFound     bool   `json:"is_found"`
 }
 
 type PointId struct {

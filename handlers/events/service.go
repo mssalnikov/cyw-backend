@@ -79,19 +79,34 @@ func (es *EventHandler) getPoint(userId int64, pointId int64) (*utils.ResultTran
 		token string
 		isFound bool
 		isSolved bool
+		naviaddress string
+		container string
 	)
-	err := u.DBCon.QueryRow("SELECT p.id, p.name, p.question, p.token, up.is_found, up.is_solved FROM points p LEFT OUTER JOIN userpoint as up on p.id = up.point_id WHERE p.id = $1", pointId).Scan(&id, &name, &question, &token, &isFound, &isSolved)
+	err := u.DBCon.QueryRow("SELECT p.id, p.name, p.question, p.token, p.container, p.naviaddress, up.is_found, up.is_solved FROM points p LEFT OUTER JOIN userpoint as up on p.id = up.point_id WHERE p.id = $1", pointId).Scan(&id, &name, &question, &token, &isFound, &isSolved)
 	if err != nil {
 		log.Println(err)
 	}
-
-	res := PointFromDbForUser {
-		Id:id,
-		Name:name,
-		Question:question,
-		IsFound:isFound,
-		IsSolved:isSolved,
+	var res PointFromDbForUser
+	if isSolved == true {
+		res = PointFromDbForUser {
+			Id:id,
+			Name:name,
+			Question:question,
+			Container:container,
+			Naviaddress:naviaddress,
+			IsFound:isFound,
+			IsSolved:isSolved,
+		}
+	} else {
+		res = PointFromDbForUser {
+			Id:id,
+			Name:name,
+			Question:question,
+			IsFound:isFound,
+			IsSolved:isSolved,
+		}
 	}
+
 	header := models.Header{Status: "ok", Count: 1, Data: res}
 	result := utils.NewResultTransformer(header)
 
@@ -106,7 +121,6 @@ func (es *EventHandler) getEvent(eventId int64) (*utils.ResultTransformer, error
 		id uint64
 		userId uint64
 		name string
-		question string
 		description string
 		start time.Time
 		finish time.Time
