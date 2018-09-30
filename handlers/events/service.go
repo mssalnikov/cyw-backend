@@ -283,16 +283,19 @@ func (es *EventHandler) answerQuestion(userId int64, pointId int64, answer strin
 
 		if err != nil {
 			log.Println(err)
-			return nil, errors.New("can't update userpoint")
+			header := models.Header{Status: "fail"}
+			result := utils.NewResultTransformer(header)
+			return result, errors.New("can't update userpoint")
 		}
 
 		header := models.Header{Status: "ok"}
 		result := utils.NewResultTransformer(header)
 		return result, nil
+	} else {
+		header := models.Header{Status: "fail"}
+		result := utils.NewResultTransformer(header)
+		return result, errors.New("wrong answer")
 	}
-	header := models.Header{Status: "fail"}
-	result := utils.NewResultTransformer(header)
-	return result, errors.New("wrong answer")
 }
 
 func (es *EventHandler) joinedEvents(event NewEvent, userId int64) ([]Event, error) {

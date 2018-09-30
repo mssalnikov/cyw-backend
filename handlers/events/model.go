@@ -137,6 +137,6 @@ type EnterToken struct {
 }
 
 type AnswerQuestion struct {
-	PointId int64  `json:"id"`
-	Answer  string `json:"string"`
+	PointId int64  `json:"point_id"`
+	Answer  string `json:"answer"`
 }
