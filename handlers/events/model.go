@@ -133,7 +133,7 @@ type EventPoint struct {
 
 type EnterToken struct {
 	PointId int64 `json:"id"`
-	Token   int64 `json:"token"`
+	Token   string `json:"token"`
 }
 
 type AnswerQuestion struct {
