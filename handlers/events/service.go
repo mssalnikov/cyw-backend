@@ -173,8 +173,10 @@ func (es *EventHandler) joinEvent(eventId int64, userId int64) (*utils.ResultTra
 			log.Printf("Scan: %v", err)
 			return nil, err
 		}
-			sqlStatement := `INSERT INTO userpoint (user_id, point_id, is_solved) values ($1, $2, $3) RETURNING id`
-			err := u.DBCon.QueryRow(sqlStatement, userId, p.Id, false)
+			var upId int64
+			sqlStatement := `INSERT INTO userpoint (user_id, point_id, is_solved, is_found) VALUES ($1, $2, $3, $4) RETURNING id`
+			err := u.DBCon.QueryRow(sqlStatement, userId, p.Id, false, false).Scan(&upId)
+			log.Println(upId)
 			if err != nil {
 				log.Println(err)
 				return nil, errors.New("can't create userpoint")
