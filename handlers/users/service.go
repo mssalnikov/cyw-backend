@@ -157,29 +157,18 @@ func (us *UserHandler) auth(fbAccessToken string) (*utils.ResultTransformer, err
 		jResponse.Set("auth_token", newToken.String())
 		jResponse.Set("username", resp.Name)
 
-		payload, err := jResponse.MarshalJSON()
-		if err != nil {
-			log.Println(err)
-		}
-
-		header := models.Header{Status: "ok", Count: 1, Data: payload}
+		header := models.Header{Status: "ok", Count: 1, Data: jResponse}
 		result := utils.NewResultTransformer(header)
 		return result, nil
 	case nil:
-		//log.Println(user)
+
 		newToken := uuid.Must(uuid.NewV4())
-		//fmt.Printf("UUIDv4: %s\n", u1)
 		key := fmt.Sprintf("TOKEN:%s", newToken)
 		u.RedisCon.Set(key, user.Id, 0).Err()
 		jResponse.Set("auth_token", newToken.String())
 		jResponse.Set("username", user.UserName)
 
-		payload, err := jResponse.MarshalJSON()
-		if err != nil {
-			log.Println(err)
-		}
-
-		header := models.Header{Status: "ok", Count: 1, Data: payload}
+		header := models.Header{Status: "ok", Count: 1, Data: jResponse}
 		result := utils.NewResultTransformer(header)
 		return result, nil
 	default:
