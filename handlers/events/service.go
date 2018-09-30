@@ -114,7 +114,7 @@ func (es *EventHandler) getEvent(eventId int64) (*utils.ResultTransformer, error
 	if err != nil {
 		log.Println(err)
 	}
-	query := fmt.Sprintf("SELECT p.id, p.name, up.is_solved, up_is_found FROM points as p LEFT OUTER JOIN userpoint as up on p.id = up.point_id WHERE up.point_id = p.id AND p.event_id = %d", eventId)
+	query := fmt.Sprintf("SELECT p.id, p.name, up.is_solved, up.is_found FROM points as p LEFT OUTER JOIN userpoint as up on p.id = up.point_id WHERE p.event_id = %d", eventId)
 	rows, err := u.DBCon.Query(query)
 	if err != nil {
 		log.Println(err)

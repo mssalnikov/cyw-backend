@@ -1,6 +1,6 @@
 FROM golang:latest
 
-ADD . /app
+ADD .. /app
 WORKDIR /app
 
 RUN go get -d -v ./...
