@@ -271,7 +271,7 @@ func (es *EventHandler) answerQuestion(userId int64, pointId int64, answer strin
 	defer es.lck.Unlock()
 
 	var rightAnswer string
-	err := u.DBCon.QueryRow("SELECT answer FROM points where point_id = $1", pointId).Scan(&rightAnswer)
+	err := u.DBCon.QueryRow("SELECT answer FROM points where id = $1", pointId).Scan(&rightAnswer)
 	if err != nil {
 		log.Println(err)
 	}
