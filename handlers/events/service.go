@@ -14,6 +14,7 @@ import (
 	"time"
 	"github.com/gkiryaziev/go-gorilla-sqlx/models"
 	"github.com/gkiryaziev/go-gorilla-sqlx/utils"
+	"database/sql"
 )
 
 func (es *EventHandler) allEvents() (*utils.ResultTransformer, error) {
@@ -156,28 +157,37 @@ func (es *EventHandler) joinEvent(eventId int64, userId int64) (*utils.ResultTra
 	defer es.lck.Unlock()
 
 	var id int64
-	sqlStatement := `INSERT INTO userevent (user_id, event_id) values ($1, $2) RETURNING id`
-	err := u.DBCon.QueryRow(sqlStatement, userId, eventId).Scan(&id)
+	row := u.DBCon.QueryRow(`SELECT id FROM userevent WHERE user_id = $1 and event_id = $2`, userId, eventId)
+	err := row.Scan(&id)
 
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
+	switch err {
+	case sql.ErrNoRows:
 
-	rows, err := u.DBCon.Query("SELECT id FROM points WHERE event_id = $1", eventId)
-	if err != nil {
-		log.Println(err)
-		return nil, errors.New("can't find event")
-	}
-	defer rows.Close()
+		sqlStatement := `INSERT INTO userevent (user_id, event_id) values ($1, $2) RETURNING id`
+		err := u.DBCon.QueryRow(sqlStatement, userId, eventId).Scan(&id)
 
-	for rows.Next() {
-		var p PointId
-		err = rows.Scan(&p.Id)
+		sqlStatement = `INSERT INTO userevent (user_id, event_id) values ($1, $2) RETURNING id`
+		err = u.DBCon.QueryRow(sqlStatement, userId, eventId).Scan(&id)
+
 		if err != nil {
-			log.Printf("Scan: %v", err)
+			log.Println(err)
 			return nil, err
 		}
+
+		rows, err := u.DBCon.Query("SELECT id FROM points WHERE event_id = $1", eventId)
+		if err != nil {
+			log.Println(err)
+			return nil, errors.New("can't find event")
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var p PointId
+			err = rows.Scan(&p.Id)
+			if err != nil {
+				log.Printf("Scan: %v", err)
+				return nil, err
+			}
 			var upId int64
 			sqlStatement := `INSERT INTO userpoint (user_id, point_id, is_solved, is_found) VALUES ($1, $2, $3, $4) RETURNING id`
 			err := u.DBCon.QueryRow(sqlStatement, userId, p.Id, false, false).Scan(&upId)
@@ -186,12 +196,18 @@ func (es *EventHandler) joinEvent(eventId int64, userId int64) (*utils.ResultTra
 				log.Println(err)
 				return nil, errors.New("can't create userpoint")
 			}
+		}
+
+		header := models.Header{Status: "ok"}
+		result := utils.NewResultTransformer(header)
+
+		return result, nil
+	case nil:
+		header := models.Header{Status: "ok"}
+		result := utils.NewResultTransformer(header)
+
+		return result, nil
 	}
-
-	header := models.Header{Status: "ok"}
-	result := utils.NewResultTransformer(header)
-
-	return result, nil
 }
 
 
