@@ -231,11 +231,12 @@ func (es *EventHandler) checkCode(userId int64, pointId int64, token string) (*u
 	defer es.lck.Unlock()
 
 	var rightToken string
-	err := u.DBCon.QueryRow("SELECT token FROM points where point_id = $1", pointId).Scan(&rightToken)
+	err := u.DBCon.QueryRow("SELECT token FROM points where id = $1", pointId).Scan(&rightToken)
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New("can't find token")
 	}
+
 	if token == rightToken {
 		sqlStatement := `UPDATE userpoint  SET is_found = TRUE WHERE user_id = $1 and point_id = $2;`
 		_, err = u.DBCon.Exec(sqlStatement, userId, pointId)
