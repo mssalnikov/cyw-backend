@@ -195,7 +195,7 @@ func (es *EventHandler) checkCode(userId int64, pointId int64, token int64) (*ut
 	defer es.lck.Unlock()
 
 	var rightToken int64
-	err := u.DBCon.QueryRow("SELECT token FROM points where point_id = ?", pointId).Scan(&rightToken)
+	err := u.DBCon.QueryRow("SELECT token FROM points where point_id = $1", pointId).Scan(&rightToken)
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New("can't find token")
@@ -229,21 +229,20 @@ func (es *EventHandler) answerQuestion(userId int64, pointId int64, answer strin
 	defer es.lck.Unlock()
 
 	var rightAnswer string
-	err := u.DBCon.QueryRow("SELECT answer FROM points where point_id = ?", pointId).Scan(&rightAnswer)
+	err := u.DBCon.QueryRow("SELECT answer FROM points where point_id = $1", pointId).Scan(&rightAnswer)
 	if err != nil {
 		log.Println(err)
 	}
 
 	if rightAnswer == answer {
 		var id int64
-		sqlStatement := `INSERT INTO userpoint (user_id, event_id, is_solved) values ($1, $2, $3) RETURNING id`
+		sqlStatement := `INSERT INTO userpoint (user_id, point_id, is_solved) values ($1, $2, $3) RETURNING id`
 		err := u.DBCon.QueryRow(sqlStatement, userId, pointId, true).Scan(&id)
 
 		if err != nil {
 			log.Println(err)
 			return nil, errors.New("can't update userpoint")
 		}
-
 
 		header := models.Header{Status: "ok"}
 		result := utils.NewResultTransformer(header)
@@ -259,7 +258,7 @@ func (es *EventHandler) joinedEvents(event NewEvent, userId int64) ([]Event, err
 	defer es.lck.Unlock()
 
 	rows, err := u.DBCon.Query("SELECT ev.id, ev.user_id, ev.name, ev.description, ev.start, ev.finish FROM events as ev " +
-		"LEFT OUTER JOIN userevent as uev on ev.id = uev.event_id WHERE uev.user_id = ?", userId)
+		"LEFT OUTER JOIN userevent as uev on ev.id = uev.event_id WHERE uev.user_id = $1", userId)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -293,11 +292,11 @@ func (es *EventHandler) createEvent(event NewEvent, userId int64) (int64, error)
 	}
 
 	// I love this async <3
-	go es.createPoint(event.Points, id, userId)
+	go es.createPoints(event.Points, id, userId)
 	return id, nil
 }
 
-func (es *EventHandler) createPoint(points []EventPoint, eventId int64, userId int64) error {
+func (es *EventHandler) createPoints(points []EventPoint, eventId int64, userId int64) error {
 	// concurrency safe
 	es.lck.Lock()
 	defer es.lck.Unlock()
@@ -308,7 +307,6 @@ func (es *EventHandler) createPoint(points []EventPoint, eventId int64, userId i
 				return err
 			}
 			prevPointId = id
-			log.Println(prevPointId)
 	}
 	return nil
 }
