@@ -278,8 +278,8 @@ func (es *EventHandler) answerQuestion(userId int64, pointId int64, answer strin
 
 	if rightAnswer == answer {
 		var id int64
-		sqlStatement := `INSERT INTO userpoint (user_id, point_id, is_solved) values ($1, $2, $3) RETURNING id`
-		err := u.DBCon.QueryRow(sqlStatement, userId, pointId, true).Scan(&id)
+		sqlStatement := `UPDATE userpoint SET is_solved = true WHERE user_id = $1 and point_id = $2 RETURNING id`
+		err := u.DBCon.QueryRow(sqlStatement, userId, pointId).Scan(&id)
 
 		if err != nil {
 			log.Println(err)
