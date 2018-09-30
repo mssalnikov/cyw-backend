@@ -58,6 +58,7 @@ func main() {
 
 	// events
 	r.HandleFunc("/new_event", eh.NewEvent).Methods("POST")
+	r.HandleFunc("/my_events", eh.MyEvents).Methods("GET")
 	r.HandleFunc("/events", eh.AllEvents).Methods("GET")
 	r.HandleFunc("/event", eh.GetEvent).Methods("GET")
 	r.HandleFunc("/point", eh.GetPoint).Methods("GET")
