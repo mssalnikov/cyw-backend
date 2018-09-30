@@ -9,12 +9,13 @@ import (
 	_ "./models"
 	_ "github.com/lib/pq"
 
-	"./utils"
-	"github.com/gorilla/mux"
-	"github.com/go-redis/redis"
 	"database/sql"
-	"./handlers/users"
+
 	"./handlers/events"
+	"./handlers/users"
+	"./utils"
+	"github.com/go-redis/redis"
+	"github.com/gorilla/mux"
 )
 
 // checkError check errors
@@ -36,7 +37,7 @@ func main() {
 
 	// http server address and port
 	hostBind := fmt.Sprintf("%s:%s",
-		"localhost",
+		"0.0.0.0",
 		"3000",
 	)
 
