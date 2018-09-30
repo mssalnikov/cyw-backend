@@ -45,7 +45,7 @@ func (es *EventHandler) myEvents(userId int64) (*utils.ResultTransformer, error)
 	es.lck.Lock()
 	defer es.lck.Unlock()
 
-	rows, err := u.DBCon.Query("SELECT id, user_id, name, description, start, finish FROM events WHERE user_id = ?", userId)
+	rows, err := u.DBCon.Query("SELECT id, user_id, name, description, start, finish FROM events WHERE user_id = $1", userId)
 	if err != nil {
 		log.Println(err)
 	}
