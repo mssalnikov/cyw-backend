@@ -67,6 +67,37 @@ func (es *EventHandler) myEvents(userId int64) (*utils.ResultTransformer, error)
 	return result, nil
 }
 
+
+func (es *EventHandler) getPoint(userId int64, pointId int64) (*utils.ResultTransformer, error) {
+	es.lck.Lock()
+	defer es.lck.Unlock()
+
+	var (
+		id uint64
+		name string
+		question string
+		token string
+		isFound bool
+		isSolved bool
+	)
+	err := u.DBCon.QueryRow("SELECT p.id, p.name, p.question, p.token, up.is_found, up.is_solved FROM points p LEFT OUTER JOIN userpoint as up on p.id = up.point_id WHERE p.id = $1", pointId).Scan(&id, &name, &question, &token, &isFound, &isSolved)
+	if err != nil {
+		log.Println(err)
+	}
+
+	res := PointFromDbForUser {
+		Id:id,
+		Name:name,
+		Question:question,
+		IsFound:isFound,
+		IsSolved:isSolved,
+	}
+	header := models.Header{Status: "ok", Count: 1, Data: res}
+	result := utils.NewResultTransformer(header)
+
+	return result, nil
+}
+
 func (es *EventHandler) getEvent(eventId int64) (*utils.ResultTransformer, error) {
 	es.lck.Lock()
 	defer es.lck.Unlock()
@@ -137,7 +168,6 @@ func (es *EventHandler) joinEvent(eventId int64, userId int64) (*utils.ResultTra
 	}
 	defer rows.Close()
 
-	//got := []PointId{}
 	for rows.Next() {
 		var p PointId
 		err = rows.Scan(&p.Id)
@@ -151,7 +181,6 @@ func (es *EventHandler) joinEvent(eventId int64, userId int64) (*utils.ResultTra
 				log.Println(err)
 				return nil, errors.New("can't create userpoint")
 			}
-		//got = append(got, p)
 	}
 
 	header := models.Header{Status: "ok"}
@@ -171,27 +200,38 @@ func (es *EventHandler) checkCode(userId int64, pointId int64, token int64) (*ut
 		log.Println(err)
 		return nil, errors.New("can't find token")
 	}
+	if token == rightToken {
+		sqlStatement := `UPDATE userpoint  SET is_found = TRUE WHERE user_id = $1 and point_id = $2;`
+		_, err = u.DBCon.Exec(sqlStatement, userId, pointId)
+		if err != nil {
+			log.Println(err)
+			return nil, errors.New("can't update userpoint")
+		}
 
-	sqlStatement := `UPDATE userpoint  SET is_found = TRUE WHERE user_id = $1 and point_id = $2;`
-	_, err = u.DBCon.Exec(sqlStatement, userId, pointId)
-	if err != nil {
-		log.Println(err)
-		return nil, errors.New("can't update userpoint")
+		header := models.Header{Status: "ok"}
+		result := utils.NewResultTransformer(header)
+		return result, nil
+	} else {
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+
+		header := models.Header{Status: "fail"}
+		result := utils.NewResultTransformer(header)
+		return result, errors.New("wrong token")
+
 	}
-
-	header := models.Header{Status: "ok"}
-	result := utils.NewResultTransformer(header)
-	return result, nil
 }
 
-func (es *EventHandler) answerQuestion(userId int64, pointId int64, answer string) (bool, error) {
+func (es *EventHandler) answerQuestion(userId int64, pointId int64, answer string) (*utils.ResultTransformer, error) {
 	es.lck.Lock()
 	defer es.lck.Unlock()
 
 	var rightAnswer string
 	err := u.DBCon.QueryRow("SELECT answer FROM points where point_id = ?", pointId).Scan(&rightAnswer)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	if rightAnswer == answer {
@@ -201,18 +241,17 @@ func (es *EventHandler) answerQuestion(userId int64, pointId int64, answer strin
 
 		if err != nil {
 			log.Println(err)
-			return false, err
-		}
-
-		if err != nil {
-			log.Println(err)
-			return false, err
+			return nil, errors.New("can't update userpoint")
 		}
 
 
-		return true, nil
+		header := models.Header{Status: "ok"}
+		result := utils.NewResultTransformer(header)
+		return result, nil
 	}
-	return false, nil
+	header := models.Header{Status: "fail"}
+	result := utils.NewResultTransformer(header)
+	return result, errors.New("wrong answer")
 }
 
 func (es *EventHandler) joinedEvents(event NewEvent, userId int64) ([]Event, error) {

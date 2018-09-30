@@ -35,6 +35,14 @@ type EventFromDBForUser struct {
 	Points      []LabelPoints `json:"points"`
 }
 
+type PointFromDbForUser struct {
+	Id       uint64 `json:"id"`
+	Name     string `json:"name"`
+	Question string `json:"question"`
+	IsSolved bool   `json:"is_solved"`
+	IsFound  bool   `json:"is_found"`
+}
+
 type PointId struct {
 	Id uint64 `db:"id" json:"id"`
 }
@@ -120,4 +128,14 @@ type EventPoint struct {
 	Name     string  `json:"name"`
 	Question string  `json:"question"`
 	Answer   string  `json:"answer"`
+}
+
+type EnterToken struct {
+	PointId int64 `json:"id"`
+	Token   int64 `json:"token"`
+}
+
+type AnswerQuestion struct {
+	PointId int64  `json:"id"`
+	Answer  string `json:"string"`
 }
