@@ -54,7 +54,7 @@ func (es *EventHandler) myEvents(userId int64) (*utils.ResultTransformer, error)
 	got := []EventFromDB{}
 	for rows.Next() {
 		var r EventFromDB
-		err = rows.Scan(&r.Id, &r.UserId, &r.Description, &r.Start, &r.Finish)
+		err = rows.Scan(&r.Id, &r.UserId, &r.Name, &r.Description, &r.Start, &r.Finish)
 		if err != nil {
 			log.Printf("Scan: %v", err)
 			return nil, err

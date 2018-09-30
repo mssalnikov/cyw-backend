@@ -36,8 +36,8 @@ func main() {
 
 	// http server address and port
 	hostBind := fmt.Sprintf("%s:%s",
-		config.Host.IP,
-		config.Host.Port,
+		"localhost",
+		"3000",
 	)
 
 	utils.DBCon, err = sql.Open("postgres", sqlBind)
@@ -59,7 +59,7 @@ func main() {
 	// events
 	r.HandleFunc("/new_event", eh.NewEvent).Methods("POST")
 	r.HandleFunc("/my_events", eh.MyEvents).Methods("GET")
-	r.HandleFunc("/my_events", eh.CheckEvent).Methods("POST")
+	r.HandleFunc("/check_event", eh.CheckEvent).Methods("POST")
 	r.HandleFunc("/events", eh.AllEvents).Methods("GET")
 	r.HandleFunc("/event", eh.GetEvent).Methods("GET")
 	r.HandleFunc("/point", eh.GetPoint).Methods("GET")
